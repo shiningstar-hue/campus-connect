@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Profile</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h2>My Profile 👤</h2>
+
+  <img id="pic" class="profile-pic" src="default.png" />
+
+
+  <p><strong>Email:</strong> <span id="email"></span></p>
+
+  <input id="name" placeholder="Your name" /><br><br>
+  <input type="file" id="file" /><br>
+  <button onclick="updateProfile()">Update Profile</button>
+
+  <h3>My Posts</h3>
+  <div id="myposts"></div>
+
+  <button onclick="back()">⬅ Back</button>
+</div>
+
+<script>
+const API = "http://localhost:3000/api";
+const token = localStorage.getItem("token");
+if (!token) window.location.href = "index.html";
+
+async function loadProfile() {
+  const res = await fetch(`${API}/users/me`, {
+    headers: { Authorization: "Bearer " + token }
+  });
+  const data = await res.json();
+
+  document.getElementById("email").innerText = data.user.email;
+  document.getElementById("name").value = data.user.name || "";
+  if (data.user.profilePic) {
+    document.getElementById("pic").src =
+  "http://localhost:3000" + data.user.profilePic + "?t=" + new Date().getTime();
+
+
+  }
+
+  const div = document.getElementById("myposts");
+  div.innerHTML = "";
+  data.posts.forEach(p => {
+    const d = document.createElement("div");
+    d.className = "post";
+    d.innerHTML = `
+      ${p.text}<br>
+      <small>${new Date(p.createdAt).toLocaleString()}</small>
+    `;
+    div.appendChild(d);
+  });
+}
+
+async function updateProfile() {
+  const fd = new FormData();
+
+  const nameInput = document.getElementById("name");
+  const fileInput = document.getElementById("file");
+
+  fd.append("name", nameInput.value);
+
+  if (fileInput.files.length > 0) {
+    fd.append("profilePic", fileInput.files[0]);
+  }
+
+  try {
+    const res = await fetch(`${API}/users/me`, {
+      method: "PUT",
+      headers: {
+        Authorization: "Bearer " + token
+      },
+      body: fd
+    });
+
+    const data = await res.json();
+    console.log(data);
+    alert("Profile updated successfully ✅");
+
+    loadProfile();
+  } catch (err) {
+    console.error(err);
+    alert("Error updating profile ❌");
+  }
+}
+
+
+function back() {
+  window.location.href = "dashboard.html";
+}
+
+loadProfile();
+</script>
+</body>
+</html>
+

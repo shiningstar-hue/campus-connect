@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard - Campus Connect</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-top: 8px;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 5px;
+      background: #5a5cff;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button.danger {
+      background: #ff4d4d;
+    }
+
+    .post {
+      border: 1px solid #ddd;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 12px;
+      background: #fafafa;
+    }
+
+    .actions button {
+      margin-right: 6px;
+      margin-top: 6px;
+    }
+
+    .top-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Welcome to Dashboard 🎉</h2>
+
+  <h3>Create Post</h3>
+  <textarea id="postText" rows="3" placeholder="What's on your mind?"></textarea>
+  <button onclick="createPost()">Post</button>
+
+  <h3 style="margin-top:20px;">All Posts</h3>
+  <div id="posts"></div>
+
+  <div class="top-actions">
+    <button onclick="goProfile()">My Profile</button>
+    <button class="danger" onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<script>
+const API = "http://localhost:3000/api";
+const token = localStorage.getItem("token");
+if (!token) window.location.href = "index.html";
+
+// decode jwt
+function getUserIdFromToken() {
+  try {
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64)).id;
+  } catch {
+    logout();
+  }
+}
+const currentUserId = getUserIdFromToken();
+
+async function fetchPosts() {
+  const res = await fetch(`${API}/users/posts`, {
+    headers: { Authorization: "Bearer " + token }
+  });
+  const data = await res.json();
+  const posts = Array.isArray(data) ? data : data.posts;
+
+  const postsDiv = document.getElementById("posts");
+  postsDiv.innerHTML = "";
+
+  posts.forEach(post => {
+    const likesArr = post.likes || [];
+    const liked = likesArr.map(id => id.toString()).includes(currentUserId);
+    const isOwner = post.user?._id === currentUserId;
+
+    const commentsHTML = (post.comments || []).map(c => `
+      <div style="margin-left:15px;">
+        <strong>${c.user?.email || "User"}:</strong> ${c.text}
+      </div>
+    `).join("");
+
+    const p = document.createElement("div");
+    p.className = "post";
+
+    p.innerHTML = `
+      <strong>${post.user?.email || "User"}</strong><br>
+      <span id="text-${post._id}">${post.text}</span><br>
+      <small>${new Date(post.createdAt).toLocaleString()}</small>
+
+      <div class="actions">
+        <button onclick="likePost('${post._id}')">
+          ${liked ? "💔 Unlike" : "❤️ Like"}
+        </button>
+        <span>${likesArr.length} likes</span>
+
+        ${isOwner ? `
+          <button onclick="startEdit('${post._id}')">✏️ Edit</button>
+          <button class="danger" onclick="deletePost('${post._id}')">🗑 Delete</button>
+        ` : ""}
+      </div>
+
+      <div style="margin-top:10px;">
+        <input id="comment-${post._id}" placeholder="Write a comment..." />
+        <button onclick="addComment('${post._id}')">💬 Comment</button>
+      </div>
+
+      <div style="margin-top:5px;">
+        ${commentsHTML}
+      </div>
+    `;
+
+    postsDiv.appendChild(p);
+  });
+}
+
+async function createPost() {
+  const text = document.getElementById("postText").value;
+  if (!text) return;
+
+  await fetch(`${API}/users/posts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token
+    },
+    body: JSON.stringify({ text })
+  });
+
+  document.getElementById("postText").value = "";
+  fetchPosts();
+}
+
+async function likePost(id) {
+  await fetch(`${API}/users/posts/${id}/like`, {
+    method: "PUT",
+    headers: { Authorization: "Bearer " + token }
+  });
+  fetchPosts();
+}
+
+function startEdit(id) {
+  const span = document.getElementById(`text-${id}`);
+  const oldText = span.innerText;
+  span.innerHTML = `
+    <textarea id="edit-${id}" rows="2">${oldText}</textarea>
+    <button onclick="saveEdit('${id}')">💾 Save</button>
+  `;
+}
+
+async function saveEdit(id) {
+  const newText = document.getElementById(`edit-${id}`).value;
+  await fetch(`${API}/users/posts/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token
+    },
+    body: JSON.stringify({ text: newText })
+  });
+  fetchPosts();
+}
+
+async function deletePost(id) {
+  await fetch(`${API}/users/posts/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: "Bearer " + token }
+  });
+  fetchPosts();
+}
+
+async function addComment(id) {
+  const input = document.getElementById(`comment-${id}`);
+  const text = input.value;
+  if (!text) return;
+
+  await fetch(`${API}/users/posts/${id}/comment`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token
+    },
+    body: JSON.stringify({ text })
+  });
+
+  input.value = "";
+  fetchPosts();
+}
+
+function goProfile() {
+  window.location.href = "profile.html";
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "index.html";
+}
+
+fetchPosts();
+</script>
+</body>
+</html>
