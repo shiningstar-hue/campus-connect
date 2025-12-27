@@ -34,7 +34,6 @@ form.addEventListener("submit", async (e) => {
     setTimeout(() => {
       window.location.href = "dashboard.html";
     }, 1000);
-
   } catch (err) {
     msg.innerText = "Server error ❌";
     msg.style.color = "red";

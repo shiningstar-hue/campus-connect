@@ -31,9 +31,8 @@ form.addEventListener("submit", async (e) => {
     msg.style.color = "green";
 
     setTimeout(() => {
-      window.location.href = "/index.html";
+      window.location.href = "index.html";
     }, 1500);
-
   } catch (err) {
     msg.innerText = "Server error ❌";
     msg.style.color = "red";

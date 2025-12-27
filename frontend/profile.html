@@ -23,8 +23,8 @@
 </div>
 
 <script>
-const API = "https://campus-connect-backend-lljm.onrender.com/api";
-const BASE = "https://campus-connect-backend-lljm.onrender.com";
+const API_BASE = "https://campus-connect-backend-lljm.onrender.com";
+const API = `${API_BASE}/api`;
 const token = localStorage.getItem("token");
 if (!token) window.location.href = "index.html";
 
@@ -39,7 +39,7 @@ async function loadProfile() {
 
   if (data.user.profilePic) {
     document.getElementById("pic").src =
-      BASE + data.user.profilePic + "?t=" + new Date().getTime();
+      API_BASE + data.user.profilePic + "?t=" + new Date().getTime();
   }
 
   const div = document.getElementById("myposts");
@@ -77,6 +77,7 @@ async function updateProfile() {
     alert("Profile updated successfully ✅");
     loadProfile();
   } catch (err) {
+    console.error(err);
     alert("Error updating profile ❌");
   }
 }
@@ -87,5 +88,6 @@ function back() {
 
 loadProfile();
 </script>
+
 </body>
 </html>
