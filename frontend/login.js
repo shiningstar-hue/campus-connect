@@ -1,3 +1,5 @@
+const API_BASE = "https://campus-connect-backend-lljm.onrender.com";
+
 const form = document.getElementById("loginForm");
 const msg = document.getElementById("msg");
 
@@ -8,7 +10,7 @@ form.addEventListener("submit", async (e) => {
   const password = document.getElementById("password").value;
 
   try {
-    const res = await fetch("http://localhost:3000/api/users/login", {
+    const res = await fetch(`${API_BASE}/api/users/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -24,13 +26,11 @@ form.addEventListener("submit", async (e) => {
       return;
     }
 
-    // ✅ Save token
     localStorage.setItem("token", data.token);
 
     msg.innerText = "Login successful ✅";
     msg.style.color = "green";
 
-    // 👉 Redirect to dashboard
     setTimeout(() => {
       window.location.href = "dashboard.html";
     }, 1000);

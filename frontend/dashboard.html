@@ -3,64 +3,6 @@
 <head>
   <title>Dashboard - Campus Connect</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 0;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 40px auto;
-      background: #fff;
-      padding: 25px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    textarea, input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      margin-top: 8px;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 5px;
-      background: #5a5cff;
-      color: #fff;
-      cursor: pointer;
-    }
-
-    button.danger {
-      background: #ff4d4d;
-    }
-
-    .post {
-      border: 1px solid #ddd;
-      padding: 12px;
-      border-radius: 6px;
-      margin-top: 12px;
-      background: #fafafa;
-    }
-
-    .actions button {
-      margin-right: 6px;
-      margin-top: 6px;
-    }
-
-    .top-actions {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
-    }
-  </style>
 </head>
 <body>
 
@@ -81,11 +23,10 @@
 </div>
 
 <script>
-const API = "http://localhost:3000/api";
+const API = "https://campus-connect-backend-lljm.onrender.com/api";
 const token = localStorage.getItem("token");
 if (!token) window.location.href = "index.html";
 
-// decode jwt
 function getUserIdFromToken() {
   try {
     const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
@@ -237,3 +178,4 @@ fetchPosts();
 </script>
 </body>
 </html>
+

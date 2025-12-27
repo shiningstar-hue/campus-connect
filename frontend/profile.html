@@ -10,7 +10,6 @@
 
   <img id="pic" class="profile-pic" src="default.png" />
 
-
   <p><strong>Email:</strong> <span id="email"></span></p>
 
   <input id="name" placeholder="Your name" /><br><br>
@@ -24,7 +23,8 @@
 </div>
 
 <script>
-const API = "http://localhost:3000/api";
+const API = "https://campus-connect-backend-lljm.onrender.com/api";
+const BASE = "https://campus-connect-backend-lljm.onrender.com";
 const token = localStorage.getItem("token");
 if (!token) window.location.href = "index.html";
 
@@ -36,11 +36,10 @@ async function loadProfile() {
 
   document.getElementById("email").innerText = data.user.email;
   document.getElementById("name").value = data.user.name || "";
+
   if (data.user.profilePic) {
     document.getElementById("pic").src =
-  "http://localhost:3000" + data.user.profilePic + "?t=" + new Date().getTime();
-
-
+      BASE + data.user.profilePic + "?t=" + new Date().getTime();
   }
 
   const div = document.getElementById("myposts");
@@ -58,12 +57,9 @@ async function loadProfile() {
 
 async function updateProfile() {
   const fd = new FormData();
+  fd.append("name", document.getElementById("name").value);
 
-  const nameInput = document.getElementById("name");
   const fileInput = document.getElementById("file");
-
-  fd.append("name", nameInput.value);
-
   if (fileInput.files.length > 0) {
     fd.append("profilePic", fileInput.files[0]);
   }
@@ -77,17 +73,13 @@ async function updateProfile() {
       body: fd
     });
 
-    const data = await res.json();
-    console.log(data);
+    await res.json();
     alert("Profile updated successfully ✅");
-
     loadProfile();
   } catch (err) {
-    console.error(err);
     alert("Error updating profile ❌");
   }
 }
-
 
 function back() {
   window.location.href = "dashboard.html";
@@ -97,4 +89,3 @@ loadProfile();
 </script>
 </body>
 </html>
-
