@@ -9,14 +9,16 @@ const generateToken = (id) => {
     expiresIn: "1h",
   });
 };
+
 // ✅ Update profile
 const updateProfile = async (req, res) => {
   try {
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);   // 👈 add this
+    console.log("UPDATE PROFILE BODY:", req.body);
+    console.log("UPDATE PROFILE FILE:", req.file);
 
     const { name } = req.body;
     const update = {};
+
     if (name) update.name = name;
     if (req.file) update.profilePic = `/uploads/${req.file.filename}`;
 
@@ -24,17 +26,24 @@ const updateProfile = async (req, res) => {
       new: true,
     }).select("-password");
 
-    res.json(user);
+    res.json({ user });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("UPDATE PROFILE ERROR:", err);
+    res.status(500).json({ message: "Profile update failed", error: err.message });
   }
 };
 
-
-// Register user
+// ✅ Register user
 const registerUser = async (req, res) => {
   try {
+    console.log("REGISTER BODY:", req.body);
+
     const { name, email, password } = req.body;
+
+    // basic validation
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -56,14 +65,24 @@ const registerUser = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("REGISTER ERROR:", error);
+    res.status(500).json({
+      message: "Registration failed",
+      error: error.message,
+    });
   }
 };
 
-// Login user
+// ✅ Login user
 const loginUser = async (req, res) => {
   try {
+    console.log("LOGIN BODY:", req.body);
+
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password required" });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -82,7 +101,11 @@ const loginUser = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("LOGIN ERROR:", error);
+    res.status(500).json({
+      message: "Login failed",
+      error: error.message,
+    });
   }
 };
 
@@ -90,12 +113,12 @@ const loginUser = async (req, res) => {
 const getMyProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
-
     const posts = await Post.find({ user: req.user.id }).sort({ createdAt: -1 });
 
     res.json({ user, posts });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("GET PROFILE ERROR:", err);
+    res.status(500).json({ message: "Failed to fetch profile", error: err.message });
   }
 };
 
